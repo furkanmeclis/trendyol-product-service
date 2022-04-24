@@ -3,19 +3,14 @@ import Selectrix from 'react-selectrix';
 import { ToastContainer, toast } from 'react-toastify';
 import CategoryTree from './CategoryTree';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import axios from 'axios';
-const apikey = 'REM3aldBdkpNcVN3dWFMczFSTE06MExSZ2FvbHRiQ2QycEtCbldRRWI=';
-const id = 464770;
 
-export default function App() {
+export default function App({ apiKey, supplierId }) {
   const ImportantStar = () => {
     return <span className="text-danger">*</span>;
   };
   useEffect(() => {
     if (categories === null) {
-      fetch(
-        'https://app.myeasytrades.com/api/trendyol/category-tree/REM3aldBdkpNcVN3dWFMczFSTE06MExSZ2FvbHRiQ2QycEtCbldRRWI='
-      )
+      fetch(`https://app.myeasytrades.com/api/trendyol/category-tree/${apiKey}`)
         .then((response) => response.json())
         .then((data) => {
           setCategories(data);
@@ -28,18 +23,29 @@ export default function App() {
   const [categories, setCategories] = useState(null);
   const [categoryId, setCategoryId] = useState(0);
   const [cargoCompanyId, setCargoCompanyId] = useState(0);
-  const [attributeData, setAttributeData] = useState(null);
+  const [attributeData, setAttributeData] = useState([]);
   const [attributesLoading, setAttributesLoading] = useState(true);
   const [attributesView, setAttributesView] = useState([]);
+  const [barcode, setBarcode] = useState('');
+  const [title, setTitle] = useState('');
+  const [productMainId, setProductMainId] = useState('');
+  const [quantity, setQuantity] = useState('');
+  const [stockCode, setStockCode] = useState('');
+  const [dimensionalWeight, setDimensionalWeight] = useState('');
+  const [description, setDescription] = useState('');
+  const [currencyType, setCurrencyType] = useState('');
+  const [listPrice, setListPrice] = useState('');
+  const [salePrice, setSalePrice] = useState('');
+  const [vatRate, setVatRate] = useState('');
+  const [attributes, setAttributes] = useState([]);
+  const [stringAttributesS, setStringAttributes] = useState({});
   const selectedAttributes = [];
+  const stringAttributes = {};
 
   const handleSubmit = (event) => {
     event.preventDefault();
     const formData = new Object();
-    for (let i = 0; i < 15; i++) {
-      if (event.target[i]?.name !== undefined)
-        formData[event.target[i].name] = event.target[i].value;
-    }
+
     if (brandId === 0 || brandId === undefined) {
       return toast.warning('Lütfen Marka Seçimi Yapınız');
     }
@@ -51,18 +57,37 @@ export default function App() {
     }
     formData.brandId = brandId;
     formData.categoryId = categoryId;
-    alert(JSON.stringify(formData));
+    formData.cargoCompanyId = cargoCompanyId;
+    formData.barcode = barcode;
+    formData.title = title;
+    formData.productMainId = productMainId;
+    formData.quantity = quantity;
+    formData.stockCode = stockCode;
+    formData.dimensionalWeight = dimensionalWeight;
+    formData.description = description;
+    formData.currencyType = currencyType;
+    formData.listPrice = listPrice;
+    formData.salePrice = salePrice;
+    formData.vatRate = vatRate;
+    let cache = [];
+    Object.entries(stringAttributesS).forEach(([key, value]) => {
+      cache.push({
+        attributeId: key,
+        customAttributeValue: value,
+      });
+    });
+    formData.attributes = [...attributes, ...cache];
+    console.log(formData);
   };
 
   const getCategoryAttributes = (id) => {
     fetch(
-      'https://app.myeasytrades.com/api/trendyol/category-attributes/REM3aldBdkpNcVN3dWFMczFSTE06MExSZ2FvbHRiQ2QycEtCbldRRWI=/' +
+      `https://app.myeasytrades.com/api/trendyol/category-attributes/${apiKey}/` +
         id
     )
       .then((response) => response.json())
       .then((data) => {
         setAttributeData(data);
-        console.log(data);
         prepareAttributesView(data);
       });
   };
@@ -84,6 +109,13 @@ export default function App() {
                     type="text"
                     placeholder={attribute.attribute.name + ' Giriniz'}
                     className="form-control"
+                    onChange={(e) => {
+                      addAttribute(
+                        attribute.attribute.id,
+                        e.target.value,
+                        'input'
+                      );
+                    }}
                   />
                 </>
               ) : (
@@ -98,7 +130,7 @@ export default function App() {
                     options={attribute.attributeValues}
                     placeholder={attribute.attribute.name + ' Seçimi Yapınız'}
                     onChange={(value) =>
-                      addAttribute(attribute.attribute.id, value.key,'select')
+                      addAttribute(attribute.attribute.id, value.key, 'select')
                     }
                   />
                 </>
@@ -112,15 +144,36 @@ export default function App() {
       setAttributesLoading(false);
     }
   };
-  const addAttribute = (attributeId, attributeValueId,type) => {
-    if(type === 'select'){
-      if(attributeValueId !== undefined){
+  const addAttribute = (attributeId, attributeValueId, type) => {
+    if (type === 'select') {
+      if (attributeValueId !== undefined) {
+        selectedAttributes.push({
+          attributeId: attributeId,
+          attributeValueId: attributeValueId,
+        });
 
-      }else{
-        
+        setAttributes(selectedAttributes);
+      } else {
+        let cache = selectedAttributes.filter(
+          (index) => index.attributeId === attributeId
+        );
+        cache.forEach((f) =>
+          selectedAttributes.splice(
+            selectedAttributes.findIndex(
+              (e) => e.attributeId === f.attributeId
+            ),
+            1
+          )
+        );
+        setAttributes(selectedAttributes);
       }
-    }else{
-
+    } else {
+      if (attributeValueId === '') {
+        delete stringAttributes[`${attributeId}`];
+      } else {
+        stringAttributes[`${attributeId}`] = attributeValueId;
+      }
+      setStringAttributes(stringAttributes);
     }
   };
   return (
@@ -140,6 +193,9 @@ export default function App() {
                 className="form-control"
                 name="barcode"
                 maxLength="40"
+                onChange={(e) => {
+                  setBarcode(e.target.value);
+                }}
               />
             </div>
           </div>
@@ -156,6 +212,9 @@ export default function App() {
                 className="form-control"
                 name="title"
                 maxLength="100"
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                }}
               />
             </div>
           </div>
@@ -172,6 +231,9 @@ export default function App() {
                 className="form-control"
                 name="productMainId"
                 maxLength="40"
+                onChange={(e) => {
+                  setProductMainId(e.target.value);
+                }}
               />
             </div>
           </div>
@@ -186,6 +248,9 @@ export default function App() {
                 type="number"
                 className="form-control"
                 name="quantity"
+                onChange={(e) => {
+                  setQuantity(e.target.value);
+                }}
               />
             </div>
           </div>
@@ -217,7 +282,7 @@ export default function App() {
                   label: 'name',
                 }}
                 ajax={{
-                  url: 'https://app.myeasytrades.com/api/trendyol/providers/REM3aldBdkpNcVN3dWFMczFSTE06MExSZ2FvbHRiQ2QycEtCbldRRWI=',
+                  url: `https://app.myeasytrades.com/api/trendyol/providers/${apiKey}`,
                 }}
                 placeholder="Kargo Şirketi Seçimi Yapınız"
                 onChange={(value) => setCargoCompanyId(value.key)}
@@ -239,7 +304,7 @@ export default function App() {
                   label: 'name',
                 }}
                 ajax={{
-                  url: 'https://app.myeasytrades.com/api/trendyol/brands/REM3aldBdkpNcVN3dWFMczFSTE06MExSZ2FvbHRiQ2QycEtCbldRRWI=/',
+                  url: `https://app.myeasytrades.com/api/trendyol/brands/${apiKey}/`,
                   fetchOnSearch: true,
                   q: '{q}',
                   minLength: 3,
@@ -262,6 +327,9 @@ export default function App() {
                 className="form-control"
                 name="stockCode"
                 maxLength="100"
+                onChange={(e) => {
+                  setStockCode(e.target.value);
+                }}
               />
             </div>
           </div>
@@ -276,6 +344,9 @@ export default function App() {
                 type="number"
                 className="form-control"
                 name="dimensionalWeight"
+                onChange={(e) => {
+                  setDimensionalWeight(e.target.value);
+                }}
               />
             </div>
           </div>
@@ -290,8 +361,10 @@ export default function App() {
                 required
                 type="text"
                 className="form-control"
-                defaultValue="TRY"
-                name="currencyrequired type"
+                name="currencyType"
+                onChange={(e) => {
+                  setCurrencyType(e.target.value);
+                }}
               />
             </div>
           </div>
@@ -306,6 +379,9 @@ export default function App() {
                 type="number"
                 className="form-control"
                 name="listPrice"
+                onChange={(e) => {
+                  setListPrice(e.target.value);
+                }}
               />
             </div>
           </div>
@@ -320,6 +396,9 @@ export default function App() {
                 type="number"
                 className="form-control"
                 name="salePrice"
+                onChange={(e) => {
+                  setSalePrice(e.target.value);
+                }}
               />
             </div>
           </div>
@@ -335,6 +414,9 @@ export default function App() {
                 type="number"
                 className="form-control"
                 name="vatRate"
+                onChange={(e) => {
+                  setVatRate(e.target.value);
+                }}
                 max="100"
                 min="0"
               />
@@ -383,6 +465,9 @@ export default function App() {
                 name="description"
                 rows="5"
                 className="form-control"
+                onChange={(e) => {
+                  setDescription(e.target.value);
+                }}
               ></textarea>
             </div>
           </div>

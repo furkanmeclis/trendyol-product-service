@@ -3,14 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "@popperjs/core": "^2.10.2",
-    "@types/react": ">=16.14.8",
-    "axios": "^0.26.1",
-    "bootstrap": "^5.1.3",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "react-selectrix": "^1.0.17",
-    "react-toastify": "^8.2.0"
+    "@popperjs/core": "2.11.5",
+    "@types/react": "18.0.6",
+    "@types/react-dom": "18.0.2",
+    "bootstrap": "5.1.3",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "react-selectrix": "1.0.17",
+    "react-toastify": "8.2.0"
   },
   "scripts": {
     "start": "react-scripts start",
