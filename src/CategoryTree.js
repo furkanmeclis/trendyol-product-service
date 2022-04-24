@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import Selectrix from 'react-selectrix';
 
-export default function CategoryTree({ categories, setCategoryId }) {
+export default function CategoryTree({
+  categories,
+  setCategoryId,
+  getCategoryAttributes,
+  setAttributesView,
+  setAttributesLoading,
+  setAttributeData,
+}) {
   const ImportantStar = () => {
     return <span className="text-danger">*</span>;
   };
@@ -31,6 +38,9 @@ export default function CategoryTree({ categories, setCategoryId }) {
     if (index <= 8) setActiveOptions8([]);
     if (index <= 9) setActiveOptions9([]);
     if (index <= 10) setActiveOptions10([]);
+    setAttributesView([]);
+    setAttributesLoading(true);
+    setAttributeData([]);
   };
   const handleClick = (value) => {
     if (value) {
@@ -52,7 +62,10 @@ export default function CategoryTree({ categories, setCategoryId }) {
           return true;
         }
       });
-      if (category[0].subCategories.length === 0) return setCategoryId(value);
+      if (category[0].subCategories.length === 0) {
+        getCategoryAttributes(value);
+        return setCategoryId(value);
+      }
       setActiveOptions3(category[0].subCategories);
       setSubLength(3);
     } else {
@@ -66,7 +79,10 @@ export default function CategoryTree({ categories, setCategoryId }) {
           return true;
         }
       });
-      if (category[0].subCategories.length === 0) return setCategoryId(value);
+      if (category[0].subCategories.length === 0) {
+        getCategoryAttributes(value);
+        return setCategoryId(value);
+      }
       setActiveOptions4(category[0].subCategories);
       setSubLength(4);
     } else {
@@ -80,7 +96,10 @@ export default function CategoryTree({ categories, setCategoryId }) {
           return true;
         }
       });
-      if (category[0].subCategories.length === 0) return setCategoryId(value);
+      if (category[0].subCategories.length === 0) {
+        getCategoryAttributes(value);
+        return setCategoryId(value);
+      }
       setActiveOptions5(category[0].subCategories);
       setSubLength(5);
     } else {
@@ -94,7 +113,10 @@ export default function CategoryTree({ categories, setCategoryId }) {
           return true;
         }
       });
-      if (category[0].subCategories.length === 0) return setCategoryId(value);
+      if (category[0].subCategories.length === 0) {
+        getCategoryAttributes(value);
+        return setCategoryId(value);
+      }
       setActiveOptions6(category[0].subCategories);
       setSubLength(6);
     } else {
@@ -108,7 +130,10 @@ export default function CategoryTree({ categories, setCategoryId }) {
           return true;
         }
       });
-      if (category[0].subCategories.length === 0) return setCategoryId(value);
+      if (category[0].subCategories.length === 0) {
+        getCategoryAttributes(value);
+        return setCategoryId(value);
+      }
       setActiveOptions7(category[0].subCategories);
       setSubLength(7);
     } else {
@@ -122,7 +147,10 @@ export default function CategoryTree({ categories, setCategoryId }) {
           return true;
         }
       });
-      if (category[0].subCategories.length === 0) return setCategoryId(value);
+      if (category[0].subCategories.length === 0) {
+        getCategoryAttributes(value);
+        return setCategoryId(value);
+      }
       setActiveOptions8(category[0].subCategories);
       setSubLength(8);
     } else {
@@ -136,7 +164,10 @@ export default function CategoryTree({ categories, setCategoryId }) {
           return true;
         }
       });
-      if (category[0].subCategories.length === 0) return setCategoryId(value);
+      if (category[0].subCategories.length === 0) {
+        getCategoryAttributes(value);
+        return setCategoryId(value);
+      }
       setActiveOptions9(category[0].subCategories);
       setSubLength(9);
     } else {
@@ -150,7 +181,10 @@ export default function CategoryTree({ categories, setCategoryId }) {
           return true;
         }
       });
-      if (category[0].subCategories.length === 0) return setCategoryId(value);
+      if (category[0].subCategories.length === 0) {
+        getCategoryAttributes(value);
+        return setCategoryId(value);
+      }
       setActiveOptions10(category[0].subCategories);
       setSubLength(10);
     } else {
@@ -164,6 +198,7 @@ export default function CategoryTree({ categories, setCategoryId }) {
           return true;
         }
       });
+      getCategoryAttributes(value);
       return setCategoryId(value);
     }
   };
@@ -172,7 +207,7 @@ export default function CategoryTree({ categories, setCategoryId }) {
     <>
       <div className="col-md-12">
         <div className="row">
-          <div className="col">
+          <div className="col-md-3">
             <div className="mb-3">
               <label className="form-label">
                 Kategori
@@ -192,7 +227,7 @@ export default function CategoryTree({ categories, setCategoryId }) {
             </div>
           </div>
           {subLength >= 2 ? (
-            <div className="col">
+            <div className="col-md-3">
               <div className="mb-3">
                 <label className="form-label">
                   Alt Kategori
@@ -216,7 +251,7 @@ export default function CategoryTree({ categories, setCategoryId }) {
           )}
 
           {subLength >= 3 ? (
-            <div className="col">
+            <div className="col-md-3">
               <div className="mb-3">
                 <label className="form-label">
                   Alt Kategori
@@ -239,7 +274,7 @@ export default function CategoryTree({ categories, setCategoryId }) {
             ''
           )}
           {subLength >= 4 ? (
-            <div className="col">
+            <div className="col-md-3">
               <div className="mb-3">
                 <label className="form-label">
                   Alt Kategori
@@ -262,7 +297,7 @@ export default function CategoryTree({ categories, setCategoryId }) {
             ''
           )}
           {subLength >= 5 ? (
-            <div className="col">
+            <div className="col-md-3">
               <div className="mb-3">
                 <label className="form-label">
                   Alt Kategori
@@ -285,7 +320,7 @@ export default function CategoryTree({ categories, setCategoryId }) {
             ''
           )}
           {subLength >= 6 ? (
-            <div className="col">
+            <div className="col-md-3">
               <div className="mb-3">
                 <label className="form-label">
                   Alt Kategori
@@ -308,7 +343,7 @@ export default function CategoryTree({ categories, setCategoryId }) {
             ''
           )}
           {subLength >= 7 ? (
-            <div className="col">
+            <div className="col-md-3">
               <div className="mb-3">
                 <label className="form-label">
                   Alt Kategori
@@ -331,7 +366,7 @@ export default function CategoryTree({ categories, setCategoryId }) {
             ''
           )}
           {subLength >= 8 ? (
-            <div className="col">
+            <div className="col-md-3">
               <div className="mb-3">
                 <label className="form-label">
                   Alt Kategori
@@ -354,7 +389,7 @@ export default function CategoryTree({ categories, setCategoryId }) {
             ''
           )}
           {subLength >= 9 ? (
-            <div className="col">
+            <div className="col-md-3">
               <div className="mb-3">
                 <label className="form-label">
                   Alt Kategori
@@ -377,7 +412,7 @@ export default function CategoryTree({ categories, setCategoryId }) {
             ''
           )}
           {subLength >= 10 ? (
-            <div className="col">
+            <div className="col-md-3">
               <div className="mb-3">
                 <label className="form-label">
                   Alt Kategori

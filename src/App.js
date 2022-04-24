@@ -28,6 +28,11 @@ export default function App() {
   const [categories, setCategories] = useState(null);
   const [categoryId, setCategoryId] = useState(0);
   const [cargoCompanyId, setCargoCompanyId] = useState(0);
+  const [attributeData, setAttributeData] = useState(null);
+  const [attributesLoading, setAttributesLoading] = useState(true);
+  const [attributesView, setAttributesView] = useState([]);
+  const selectedAttributes = [];
+
   const handleSubmit = (event) => {
     event.preventDefault();
     const formData = new Object();
@@ -47,6 +52,76 @@ export default function App() {
     formData.brandId = brandId;
     formData.categoryId = categoryId;
     alert(JSON.stringify(formData));
+  };
+
+  const getCategoryAttributes = (id) => {
+    fetch(
+      'https://app.myeasytrades.com/api/trendyol/category-attributes/REM3aldBdkpNcVN3dWFMczFSTE06MExSZ2FvbHRiQ2QycEtCbldRRWI=/' +
+        id
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        setAttributeData(data);
+        console.log(data);
+        prepareAttributesView(data);
+      });
+  };
+  const prepareAttributesView = (data) => {
+    if (data.categoryAttributes) {
+      let cacheData = [];
+      data.categoryAttributes.map((attribute) => {
+        cacheData.push(
+          <div className="col-md-3" key={attribute.attribute.id}>
+            <div className="mb-3">
+              <label className="form-label">
+                {attribute.attribute.name}
+                {attribute.required && <ImportantStar />}
+              </label>
+              {attribute.allowCustom === true ? (
+                <>
+                  <input
+                    required
+                    type="text"
+                    placeholder={attribute.attribute.name + ' Giriniz'}
+                    className="form-control"
+                  />
+                </>
+              ) : (
+                <>
+                  <Selectrix
+                    height={250}
+                    customScrollbar={true}
+                    customKeys={{
+                      key: 'id',
+                      label: 'name',
+                    }}
+                    options={attribute.attributeValues}
+                    placeholder={attribute.attribute.name + ' Seçimi Yapınız'}
+                    onChange={(value) =>
+                      addAttribute(attribute.attribute.id, value.key,'select')
+                    }
+                  />
+                </>
+              )}
+            </div>
+          </div>
+        );
+      });
+      setAttributesView(cacheData);
+      cacheData = [];
+      setAttributesLoading(false);
+    }
+  };
+  const addAttribute = (attributeId, attributeValueId,type) => {
+    if(type === 'select'){
+      if(attributeValueId !== undefined){
+
+      }else{
+        
+      }
+    }else{
+
+    }
   };
   return (
     <>
@@ -266,14 +341,36 @@ export default function App() {
             </div>
           </div>
           {loading === false ? (
-            <CategoryTree
-              categories={categories}
-              setCategoryId={setCategoryId}
-            />
+            <>
+              <CategoryTree
+                categories={categories}
+                setCategoryId={setCategoryId}
+                getCategoryAttributes={getCategoryAttributes}
+                setAttributesView={setAttributesView}
+                setAttributesLoading={setAttributesLoading}
+                setAttributeData={setAttributeData}
+              />
+            </>
           ) : (
             ''
           )}
-
+          <div className="row">
+            {categoryId !== 0 ? (
+              <>
+                {attributesLoading === false ? (
+                  <>
+                    {attributesView.map((elem) => {
+                      return elem;
+                    })}
+                  </>
+                ) : (
+                  ''
+                )}
+              </>
+            ) : (
+              ''
+            )}
+          </div>
           <div className="col-md-3">
             <div className="mb-3">
               <label className="form-label">
