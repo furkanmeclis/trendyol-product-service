@@ -39,10 +39,12 @@ export default function App({ apiKey, supplierId }) {
   const [vatRate, setVatRate] = useState('');
   const [attributes, setAttributes] = useState([]);
   const [stringAttributesS, setStringAttributes] = useState({});
+  const [images, setImages] = useState([]);
+  const [process, setProcess] = useState(null);
   const selectedAttributes = [];
   const stringAttributes = {};
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const formData = new Object();
 
@@ -77,7 +79,25 @@ export default function App({ apiKey, supplierId }) {
       });
     });
     formData.attributes = [...attributes, ...cache];
-    console.log(formData);
+    setProcess('Resimlerin Yüklenmesine Başlanılıyor');
+    let imageUrls = await uploadPhotos();
+    setProcess('Resimlerin Yüklenmesi Tamamlandı');
+    formData.images = imageUrls;
+    let cacheForm = new FormData();
+    cacheForm.append('json', JSON.stringify(formData));
+    setProcess('Ürün Bilgileri Trendyol Servisine Aktarılıyor');
+    fetch(
+      `https://app.myeasytrades.com/api/trendyol/upload-product/${apiKey}/${supplierId}`,
+      {
+        method: 'POST',
+        body: cacheForm,
+      }
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        setProcess('Servisten dönüş yapıldı konsolu kontrol edin');
+        console.log(data);
+      });
   };
 
   const getCategoryAttributes = (id) => {
@@ -176,10 +196,50 @@ export default function App({ apiKey, supplierId }) {
       setStringAttributes(stringAttributes);
     }
   };
+  const handlePicked = (e) => {
+    let images = e.target.files;
+    if (images.length === 0) {
+      toast.error('Lütfen Resimleri Seçiniz');
+    } else {
+      if (images.length === 8) {
+        toast.warn('Lütfen 8 Adetten Fazla Resim Seçmeyiniz');
+      } else {
+        setImages([...images]);
+      }
+    }
+  };
+  const uploadPhotos = async () => {
+    let urls = [];
+    images.map((image, i) => {
+      let formData = new FormData();
+      formData.append('image', image);
+      fetch(
+        `https://app.myeasytrades.com/api/trendyol/upload-image/${apiKey}`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          urls.push({
+            url: data.url,
+          });
+        });
+    });
+    return urls;
+  };
   return (
     <>
       <form onSubmit={(e) => handleSubmit(e)}>
         <div className="row">
+          {process === null ? (
+            ''
+          ) : (
+            <div className="col-md-12">
+              <div className="alert alert-warning">{process}</div>
+            </div>
+          )}
           <div className="col-md-3">
             <div className="mb-3">
               <label className="form-label">
@@ -453,7 +513,7 @@ export default function App({ apiKey, supplierId }) {
               ''
             )}
           </div>
-          <div className="col-md-3">
+          <div className="col-md-6">
             <div className="mb-3">
               <label className="form-label">
                 Açıklama
@@ -469,6 +529,24 @@ export default function App({ apiKey, supplierId }) {
                   setDescription(e.target.value);
                 }}
               ></textarea>
+            </div>
+          </div>
+          <div className="col-md-6">
+            <div className="mb-3">
+              <label className="form-label">
+                Resimleri Seçin
+                <ImportantStar />{' '}
+                <small className="text-muted">(Max 8 Adet)</small>
+              </label>
+              <br />
+              <input
+                type="file"
+                class="form-control-file"
+                multiple={true}
+                accept="image/*"
+                max={8}
+                onChange={handlePicked}
+              />
             </div>
           </div>
           <div className="col-md-12">
