@@ -8,6 +8,11 @@ export default function App({ apiKey, supplierId }) {
   const ImportantStar = () => {
     return <span className="text-danger">*</span>;
   };
+  const [authenticated, setAuthenticated] = useState(true);
+  const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(
+    'Servis Kaynaklı Bir Sorun Var'
+  );
   useEffect(() => {
     if (categories === null) {
       fetch(`https://app.myeasytrades.com/api/trendyol/category-tree/${apiKey}`)
@@ -15,9 +20,19 @@ export default function App({ apiKey, supplierId }) {
         .then((data) => {
           setCategories(data);
           setLoading(false);
+        })
+        .catch((e) => e.json())
+        .catch((e) => {
+          if (e.exception === 'TrendyolAuthorizationException') {
+            setError(true);
+            setAuthenticated(false);
+          } else {
+            setError(true);
+          }
         });
     }
   }, []);
+  
   const [brandId, setBrandId] = useState(0);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState(null);
@@ -231,331 +246,349 @@ export default function App({ apiKey, supplierId }) {
   };
   return (
     <>
-      <form onSubmit={(e) => handleSubmit(e)}>
-        <div className="row">
-          {process === null ? (
-            ''
-          ) : (
-            <div className="col-md-12">
-              <div className="alert alert-warning">{process}</div>
-            </div>
-          )}
-          <div className="col-md-3">
-            <div className="mb-3">
-              <label className="form-label">
-                Barkod
-                <ImportantStar />{' '}
-                <small className="text-muted">(Max 40 karakter) </small>
-              </label>
-              <input
-                required
-                type="text"
-                className="form-control"
-                name="barcode"
-                maxLength="40"
-                onChange={(e) => {
-                  setBarcode(e.target.value);
-                }}
-              />
-            </div>
-          </div>
-          <div className="col-md-3">
-            <div className="mb-3">
-              <label className="form-label">
-                Başlık
-                <ImportantStar />{' '}
-                <small className="text-muted">(Max 100 karakter)</small>
-              </label>
-              <input
-                required
-                type="text"
-                className="form-control"
-                name="title"
-                maxLength="100"
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                }}
-              />
-            </div>
-          </div>
-          <div className="col-md-3">
-            <div className="mb-3">
-              <label className="form-label">
-                Ürün Kodu
-                <ImportantStar />{' '}
-                <small className="text-muted">(Max 40 karakter)</small>
-              </label>
-              <input
-                required
-                type="text"
-                className="form-control"
-                name="productMainId"
-                maxLength="40"
-                onChange={(e) => {
-                  setProductMainId(e.target.value);
-                }}
-              />
-            </div>
-          </div>
-          <div className="col-md-3">
-            <div className="mb-3">
-              <label className="form-label">
-                Stok Miktarı
-                <ImportantStar />
-              </label>
-              <input
-                required
-                type="number"
-                className="form-control"
-                name="quantity"
-                onChange={(e) => {
-                  setQuantity(e.target.value);
-                }}
-              />
-            </div>
-          </div>
-          <div className="col-md-3">
-            <div className="mb-3">
-              <label className="form-label">
-                Kargo Şirketi
-                <ImportantStar />{' '}
-                <small
-                  className="text-warning"
-                  onClick={(e) => {
-                    toast.info(
-                      'Trendyol İle Anlaşmalı Olduğunuz Kargo Şirketini Seçmemeniz Durumunda Ürün Trendyol Tarafınca Onaylanmayacaktır.',
-                      {
-                        duration: 2000,
-                      }
-                    );
-                  }}
-                  title="Trendyol İle Anlaşmalı Olduğunuz Kargo Şirketini Seçmemeniz Durumunda Ürün Trendyol Tarafınca Onaylanmayacaktır."
-                >
-                  (Lütfen Buraya Tıklayınız)
-                </small>
-              </label>
-              <Selectrix
-                height={250}
-                customScrollbar={true}
-                customKeys={{
-                  key: 'id',
-                  label: 'name',
-                }}
-                ajax={{
-                  url: `https://app.myeasytrades.com/api/trendyol/providers/${apiKey}`,
-                }}
-                placeholder="Kargo Şirketi Seçimi Yapınız"
-                onChange={(value) => setCargoCompanyId(value.key)}
-              />
-            </div>
-          </div>
-          <div className="col-md-3">
-            <div className="mb-3">
-              <label className="form-label">
-                Marka
-                <ImportantStar />
-              </label>
-              <Selectrix
-                height={250}
-                customScrollbar={true}
-                placeholder="Marka Seçimi Yapınız"
-                customKeys={{
-                  key: 'id',
-                  label: 'name',
-                }}
-                ajax={{
-                  url: `https://app.myeasytrades.com/api/trendyol/brands/${apiKey}/`,
-                  fetchOnSearch: true,
-                  q: '{q}',
-                  minLength: 3,
-                }}
-                onChange={(value) => setBrandId(value.key)}
-              />
-            </div>
-          </div>
+      {error === false ? (
+        <>
+          <form onSubmit={(e) => handleSubmit(e)}>
+            <div className="row">
+              {process === null ? (
+                ''
+              ) : (
+                <div className="col-md-12">
+                  <div className="alert alert-warning">{process}</div>
+                </div>
+              )}
+              <div className="col-md-3">
+                <div className="mb-3">
+                  <label className="form-label">
+                    Barkod
+                    <ImportantStar />{' '}
+                    <small className="text-muted">(Max 40 karakter) </small>
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    className="form-control"
+                    name="barcode"
+                    maxLength="40"
+                    onChange={(e) => {
+                      setBarcode(e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="col-md-3">
+                <div className="mb-3">
+                  <label className="form-label">
+                    Başlık
+                    <ImportantStar />{' '}
+                    <small className="text-muted">(Max 100 karakter)</small>
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    className="form-control"
+                    name="title"
+                    maxLength="100"
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="col-md-3">
+                <div className="mb-3">
+                  <label className="form-label">
+                    Ürün Kodu
+                    <ImportantStar />{' '}
+                    <small className="text-muted">(Max 40 karakter)</small>
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    className="form-control"
+                    name="productMainId"
+                    maxLength="40"
+                    onChange={(e) => {
+                      setProductMainId(e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="col-md-3">
+                <div className="mb-3">
+                  <label className="form-label">
+                    Stok Miktarı
+                    <ImportantStar />
+                  </label>
+                  <input
+                    required
+                    type="number"
+                    className="form-control"
+                    name="quantity"
+                    onChange={(e) => {
+                      setQuantity(e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="col-md-3">
+                <div className="mb-3">
+                  <label className="form-label">
+                    Kargo Şirketi
+                    <ImportantStar />{' '}
+                    <small
+                      className="text-warning"
+                      onClick={(e) => {
+                        toast.info(
+                          'Trendyol İle Anlaşmalı Olduğunuz Kargo Şirketini Seçmemeniz Durumunda Ürün Trendyol Tarafınca Onaylanmayacaktır.',
+                          {
+                            duration: 2000,
+                          }
+                        );
+                      }}
+                      title="Trendyol İle Anlaşmalı Olduğunuz Kargo Şirketini Seçmemeniz Durumunda Ürün Trendyol Tarafınca Onaylanmayacaktır."
+                    >
+                      (Lütfen Buraya Tıklayınız)
+                    </small>
+                  </label>
+                  <Selectrix
+                    height={250}
+                    customScrollbar={true}
+                    customKeys={{
+                      key: 'id',
+                      label: 'name',
+                    }}
+                    ajax={{
+                      url: `https://app.myeasytrades.com/api/trendyol/providers/${apiKey}`,
+                    }}
+                    placeholder="Kargo Şirketi Seçimi Yapınız"
+                    onChange={(value) => setCargoCompanyId(value.key)}
+                  />
+                </div>
+              </div>
+              <div className="col-md-3">
+                <div className="mb-3">
+                  <label className="form-label">
+                    Marka
+                    <ImportantStar />
+                  </label>
+                  <Selectrix
+                    height={250}
+                    customScrollbar={true}
+                    placeholder="Marka Seçimi Yapınız"
+                    customKeys={{
+                      key: 'id',
+                      label: 'name',
+                    }}
+                    ajax={{
+                      url: `https://app.myeasytrades.com/api/trendyol/brands/${apiKey}/`,
+                      fetchOnSearch: true,
+                      q: '{q}',
+                      minLength: 3,
+                    }}
+                    onChange={(value) => setBrandId(value.key)}
+                  />
+                </div>
+              </div>
 
-          <div className="col-md-3">
-            <div className="mb-3">
-              <label className="form-label">
-                Stok Kodu
-                <ImportantStar />
-                <small className="text-muted">(Max 100 karakter)</small>
-              </label>
-              <input
-                required
-                type="text"
-                className="form-control"
-                name="stockCode"
-                maxLength="100"
-                onChange={(e) => {
-                  setStockCode(e.target.value);
-                }}
-              />
-            </div>
-          </div>
-          <div className="col-md-3">
-            <div className="mb-3">
-              <label className="form-label">
-                Desi Miktarı
-                <ImportantStar />
-              </label>
-              <input
-                required
-                type="number"
-                className="form-control"
-                name="dimensionalWeight"
-                onChange={(e) => {
-                  setDimensionalWeight(e.target.value);
-                }}
-              />
-            </div>
-          </div>
-          <div className="col-md-3">
-            <div className="mb-3">
-              <label className="form-label">
-                Para Birimi
-                <ImportantStar />
-                <small className="text-muted">(TRY,USD,EUR...)</small>
-              </label>
-              <input
-                required
-                type="text"
-                className="form-control"
-                name="currencyType"
-                onChange={(e) => {
-                  setCurrencyType(e.target.value);
-                }}
-              />
-            </div>
-          </div>
-          <div className="col-md-3">
-            <div className="mb-3">
-              <label className="form-label">
-                Liste Fiyatı
-                <ImportantStar /> <small className="text-muted">(PSF)</small>
-              </label>
-              <input
-                required
-                type="number"
-                className="form-control"
-                name="listPrice"
-                onChange={(e) => {
-                  setListPrice(e.target.value);
-                }}
-              />
-            </div>
-          </div>
-          <div className="col-md-3">
-            <div className="mb-3">
-              <label className="form-label">
-                Satış Fiyatı
-                <ImportantStar /> <small className="text-muted">(TSF)</small>
-              </label>
-              <input
-                required
-                type="number"
-                className="form-control"
-                name="salePrice"
-                onChange={(e) => {
-                  setSalePrice(e.target.value);
-                }}
-              />
-            </div>
-          </div>
-          <div className="col-md-3">
-            <div className="mb-3">
-              <label className="form-label">
-                KDV Oranı
-                <ImportantStar />{' '}
-                <small className="text-muted">(0 , 1 , 8 , 18)</small>
-              </label>
-              <input
-                required
-                type="number"
-                className="form-control"
-                name="vatRate"
-                onChange={(e) => {
-                  setVatRate(e.target.value);
-                }}
-                max="100"
-                min="0"
-              />
-            </div>
-          </div>
-          {loading === false ? (
-            <>
-              <CategoryTree
-                categories={categories}
-                setCategoryId={setCategoryId}
-                getCategoryAttributes={getCategoryAttributes}
-                setAttributesView={setAttributesView}
-                setAttributesLoading={setAttributesLoading}
-                setAttributeData={setAttributeData}
-              />
-            </>
-          ) : (
-            ''
-          )}
-          <div className="row">
-            {categoryId !== 0 ? (
-              <>
-                {attributesLoading === false ? (
+              <div className="col-md-3">
+                <div className="mb-3">
+                  <label className="form-label">
+                    Stok Kodu
+                    <ImportantStar />
+                    <small className="text-muted">(Max 100 karakter)</small>
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    className="form-control"
+                    name="stockCode"
+                    maxLength="100"
+                    onChange={(e) => {
+                      setStockCode(e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="col-md-3">
+                <div className="mb-3">
+                  <label className="form-label">
+                    Desi Miktarı
+                    <ImportantStar />
+                  </label>
+                  <input
+                    required
+                    type="number"
+                    className="form-control"
+                    name="dimensionalWeight"
+                    onChange={(e) => {
+                      setDimensionalWeight(e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="col-md-3">
+                <div className="mb-3">
+                  <label className="form-label">
+                    Para Birimi
+                    <ImportantStar />
+                    <small className="text-muted">(TRY,USD,EUR...)</small>
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    className="form-control"
+                    name="currencyType"
+                    onChange={(e) => {
+                      setCurrencyType(e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="col-md-3">
+                <div className="mb-3">
+                  <label className="form-label">
+                    Liste Fiyatı
+                    <ImportantStar />{' '}
+                    <small className="text-muted">(PSF)</small>
+                  </label>
+                  <input
+                    required
+                    type="number"
+                    className="form-control"
+                    name="listPrice"
+                    onChange={(e) => {
+                      setListPrice(e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="col-md-3">
+                <div className="mb-3">
+                  <label className="form-label">
+                    Satış Fiyatı
+                    <ImportantStar />{' '}
+                    <small className="text-muted">(TSF)</small>
+                  </label>
+                  <input
+                    required
+                    type="number"
+                    className="form-control"
+                    name="salePrice"
+                    onChange={(e) => {
+                      setSalePrice(e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="col-md-3">
+                <div className="mb-3">
+                  <label className="form-label">
+                    KDV Oranı
+                    <ImportantStar />{' '}
+                    <small className="text-muted">(0 , 1 , 8 , 18)</small>
+                  </label>
+                  <input
+                    required
+                    type="number"
+                    className="form-control"
+                    name="vatRate"
+                    onChange={(e) => {
+                      setVatRate(e.target.value);
+                    }}
+                    max="100"
+                    min="0"
+                  />
+                </div>
+              </div>
+              {loading === false ? (
+                <>
+                  <CategoryTree
+                    categories={categories}
+                    setCategoryId={setCategoryId}
+                    getCategoryAttributes={getCategoryAttributes}
+                    setAttributesView={setAttributesView}
+                    setAttributesLoading={setAttributesLoading}
+                    setAttributeData={setAttributeData}
+                  />
+                </>
+              ) : (
+                ''
+              )}
+              <div className="row">
+                {categoryId !== 0 ? (
                   <>
-                    {attributesView.map((elem) => {
-                      return elem;
-                    })}
+                    {attributesLoading === false ? (
+                      <>
+                        {attributesView.map((elem) => {
+                          return elem;
+                        })}
+                      </>
+                    ) : (
+                      ''
+                    )}
                   </>
                 ) : (
                   ''
                 )}
-              </>
-            ) : (
-              ''
-            )}
-          </div>
-          <div className="col-md-6">
-            <div className="mb-3">
-              <label className="form-label">
-                Açıklama
-                <ImportantStar />{' '}
-                <small className="text-muted">(Max 30.000 Karakter)</small>
-              </label>
-              <textarea
-                maxLength="30000"
-                name="description"
-                rows="5"
-                className="form-control"
-                onChange={(e) => {
-                  setDescription(e.target.value);
-                }}
-              ></textarea>
+              </div>
+              <div className="col-md-6">
+                <div className="mb-3">
+                  <label className="form-label">
+                    Açıklama
+                    <ImportantStar />{' '}
+                    <small className="text-muted">(Max 30.000 Karakter)</small>
+                  </label>
+                  <textarea
+                    maxLength="30000"
+                    name="description"
+                    rows="5"
+                    className="form-control"
+                    onChange={(e) => {
+                      setDescription(e.target.value);
+                    }}
+                  ></textarea>
+                </div>
+              </div>
+              <div className="col-md-6">
+                <div className="mb-3">
+                  <label className="form-label">
+                    Resimleri Seçin
+                    <ImportantStar />{' '}
+                    <small className="text-muted">(Max 8 Adet)</small>
+                  </label>
+                  <br />
+                  <input
+                    type="file"
+                    class="form-control-file"
+                    multiple={true}
+                    accept="image/*"
+                    max={8}
+                    onChange={handlePicked}
+                  />
+                </div>
+              </div>
+              <div className="col-md-12">
+                <div className="d-flex justify-content-center">
+                  <button className="btn btn-outline-success">Kaydet</button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </>
+      ) : (
+        <>
+          <div className="row">
+            <div className="col-md-12">
+              <div className="alert alert-danger">
+                {authenticated === true
+                  ? errorMessage
+                  : 'Api Bilgilerinizi Kontrol Edin'}
+              </div>
             </div>
           </div>
-          <div className="col-md-6">
-            <div className="mb-3">
-              <label className="form-label">
-                Resimleri Seçin
-                <ImportantStar />{' '}
-                <small className="text-muted">(Max 8 Adet)</small>
-              </label>
-              <br />
-              <input
-                type="file"
-                class="form-control-file"
-                multiple={true}
-                accept="image/*"
-                max={8}
-                onChange={handlePicked}
-              />
-            </div>
-          </div>
-          <div className="col-md-12">
-            <div className="d-flex justify-content-center">
-              <button className="btn btn-outline-success">Kaydet</button>
-            </div>
-          </div>
-        </div>
-      </form>
+        </>
+      )}
 
       <ToastContainer />
     </>
